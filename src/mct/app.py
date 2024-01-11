@@ -4,6 +4,8 @@ for mnbvc-charset develop
 import toga
 from toga.style import Pack
 from toga.style.pack import COLUMN, ROW, LEFT
+import subprocess
+import os
 
 
 EXT_ENCODING = [
@@ -18,6 +20,20 @@ EXT_ENCODING = [
     'utf_16',  # Unicode (UTF-16)
     'cp1252',  # Western European (Windows)
 ]
+
+# copy text to clipboard
+
+
+def set_clipboard_data(data):
+
+    if os.name == 'nt':
+        command = 'echo | set /p nul=' + data.strip() + '| clip'
+        os.system(command)
+    else:
+        p = subprocess.Popen(['pbcopy'], stdin=subprocess.PIPE)
+        p.stdin.write(data)
+        p.stdin.close()
+        p.communicate()
 
 
 def fix_data(s: str) -> list:
@@ -63,17 +79,22 @@ class MNBVCCharsetTool(toga.App):
         """
         main_box = toga.Box()
         input_box = toga.Box()
-        self.origin_str_input = toga.TextInput(placeholder="请输入原始文本", style=Pack(flex=1, height=30))
-        guess_button = toga.Button("猜测编码", on_press=self.button_handler, style=Pack(height=30))
-        #self.table = toga.DetailedList(style=Pack(height=600, padding_top="20"))
-        self.table = toga.Table(headings=["原始编码", "转换编码", "结果"], style=Pack(height=600, padding_top="20"))
+        self.origin_str_input = toga.TextInput(
+            placeholder="请输入原始文本", style=Pack(flex=1, height=30))
+        guess_button = toga.Button(
+            "猜测编码", on_press=self.button_handler, style=Pack(height=30))
+        # self.table = toga.DetailedList(style=Pack(height=600, padding_top="20"))
+        self.table = toga.Table(headings=["原始编码", "转换编码", "结果"],
+                                style=Pack(height=600, padding_top="20")
+                                )
         input_box.add(self.origin_str_input)
         input_box.add(guess_button)
         main_box.add(input_box)
         main_box.add(self.table)
 
         main_box.style.update(direction=COLUMN, padding=20)
-        self.main_window = toga.MainWindow(title=self.formal_name, size=(800, 600), position=(400, 300))
+        self.main_window = toga.MainWindow(
+            title=self.formal_name, size=(800, 600), position=(400, 300))
         self.main_window.content = main_box
         self.main_window.show()
 

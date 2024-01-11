@@ -11,7 +11,7 @@ EXT_ENCODING = [
     "gb2312",  # 简体中文 (GB2312)
     'gbk',  # 简体中文 (GB2312)
     'gb18030',  # 简体中文 (GB2312)
-    'BIG5',  # 繁体中文 (BIG5)
+    'big5',  # 繁体中文 (BIG5)
     'shift_jis',  # 日本語 (cp932)
     'euc_kr',  # 한국어 (cp949)
     'ascii',  # ASCII
@@ -19,16 +19,6 @@ EXT_ENCODING = [
     'cp1252',  # Western European (Windows)
 ]
 
-def convert_table_data(data: list) -> list:
-    result = [
-        {
-            "icon": toga.Icon("icons/tricia"),
-            "title": f'{item.get("from")}--->{item.get("to")}',
-            "subtitle": item.get("guess")
-        }
-        for item in data
-    ]
-    return result
 
 def fix_data(s: str) -> list:
     """
@@ -55,7 +45,13 @@ class MNBVCCharsetTool(toga.App):
     def button_handler(self, widget):
         origin_value = self.origin_str_input.value
         return_values = fix_data(origin_value)
-        self.table.data = convert_table_data(return_values)
+        table_data = [
+            (
+                item.get("from"), item.get("to"), item.get("guess")
+            )
+            for item in return_values
+        ]
+        self.table.data = table_data
 
     def startup(self):
         """
@@ -69,8 +65,8 @@ class MNBVCCharsetTool(toga.App):
         input_box = toga.Box()
         self.origin_str_input = toga.TextInput(placeholder="请输入原始文本", style=Pack(flex=1, height=30))
         guess_button = toga.Button("猜测编码", on_press=self.button_handler, style=Pack(height=30))
-        self.table = toga.DetailedList(style=Pack(height=600, padding_top="20"))
-
+        #self.table = toga.DetailedList(style=Pack(height=600, padding_top="20"))
+        self.table = toga.Table(headings=["原始编码", "转换编码", "结果"], style=Pack(height=600, padding_top="20"))
         input_box.add(self.origin_str_input)
         input_box.add(guess_button)
         main_box.add(input_box)

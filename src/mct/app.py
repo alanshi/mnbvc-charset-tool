@@ -1,11 +1,13 @@
 """
 for mnbvc-charset develop
 """
+import subprocess
+import os
+import ast
+
 import toga
 from toga.style import Pack
 from toga.style.pack import COLUMN, ROW, LEFT
-import subprocess
-import os
 
 
 EXT_ENCODING = [
@@ -58,8 +60,22 @@ def fix_data(s: str) -> list:
 
 class MNBVCCharsetTool(toga.App):
 
-    def button_handler(self, widget):
-        origin_value = self.origin_str_input.value
+    def encode_button_handler(self, widget):
+        origin_value = self.convert_source_str_input.value
+        encode_value = origin_value.encode(
+            encoding=self.convert_encode_selection.value, errors='replace')
+        self.convert_source_str_input.value = encode_value
+
+    def decode_button_handler(self, widget):
+        origin_value = self.convert_source_str_input.value
+        # convert origin_value bytes str to bytes
+        origin_value = ast.literal_eval(origin_value)
+        decode_value = origin_value.decode(
+            encoding=self.convert_encode_selection.value, errors='replace')
+        self.convert_source_str_input.value = decode_value
+
+    def guess_button_handler(self, widget):
+        origin_value = self.guess_str_input.value
         return_values = fix_data(origin_value)
         table_data = [
             (
@@ -67,7 +83,7 @@ class MNBVCCharsetTool(toga.App):
             )
             for item in return_values
         ]
-        self.table.data = table_data
+        self.guess_result_table.data = table_data
 
     def startup(self):
         """
@@ -77,27 +93,78 @@ class MNBVCCharsetTool(toga.App):
         We then create a main window (with a name matching the app), and
         show the main window.
         """
-        main_box = toga.Box()
-        input_box = toga.Box()
-        self.origin_str_input = toga.TextInput(
-            placeholder="请输入原始文本", style=Pack(flex=1, height=30))
+        cricket_icon = "icons/cricket-72.png"
+        guess_encode_main_box = toga.Box()
+        guess_encode_box = toga.Box()
+        covert_encode_main_box = toga.Box()
+        covert_encode_box = toga.Box()
+        container = toga.OptionContainer(
+            content=[
+                toga.OptionItem(
+                    "编码猜测",
+                    guess_encode_main_box,
+                ),
+                toga.OptionItem(
+                    "编码互转",
+                    covert_encode_main_box
+                )
+            ]
+        )
+        # guess encode
+        self.guess_str_input = toga.TextInput(
+            placeholder="请输入需要编码猜测的原始文本",
+            style=Pack(flex=1, height=30)
+        )
         guess_button = toga.Button(
-            "猜测编码", on_press=self.button_handler, style=Pack(height=30))
-        # self.table = toga.DetailedList(style=Pack(height=600, padding_top="20"))
-        self.table = toga.Table(headings=["原始编码", "转换编码", "结果"],
-                                style=Pack(height=600, padding_top="20")
-                                )
-        input_box.add(self.origin_str_input)
-        input_box.add(guess_button)
-        main_box.add(input_box)
-        main_box.add(self.table)
+            "编码猜测",
+            on_press=self.guess_button_handler,
+            style=Pack(height=30)
+        )
+        self.guess_result_table = toga.Table(
+            headings=["原始编码", "转换编码", "结果"],
+            style=Pack(height=480, width=750, padding_top="5")
+        )
+        # code convert
+        self.convert_source_str_input = toga.TextInput(
+            placeholder="请输入需要转换的文本",
+            style=Pack(flex=1,height=30)
+        )
+        self.convert_encode_selection = toga.Selection(
+            items=EXT_ENCODING,
+            style=Pack(height=30)
+        )
+        self.convert_encode_button = toga.Button(
+            "Encode",
+            on_press=self.encode_button_handler,
+            style=Pack(height=30)
+        )
+        self.convert_decode_button = toga.Button(
+            "Decode",
+            on_press=self.decode_button_handler,
+            style=Pack(height=30)
+        )
+        covert_encode_box.add(self.convert_source_str_input)
+        covert_encode_box.add(self.convert_encode_selection)
+        covert_encode_box.add(self.convert_encode_button)
+        covert_encode_box.add(self.convert_decode_button)
+        covert_encode_main_box.add(covert_encode_box)
+        covert_encode_main_box.style.update(direction=COLUMN, padding=20)
 
-        main_box.style.update(direction=COLUMN, padding=20)
+
+        guess_encode_box.add(self.guess_str_input)
+        guess_encode_box.add(guess_button)
+        guess_encode_main_box.add(guess_encode_box)
+        guess_encode_main_box.add(self.guess_result_table)
+        guess_encode_main_box.style.update(direction=COLUMN, padding=20)
+
         self.main_window = toga.MainWindow(
-            title=self.formal_name, size=(800, 600), position=(400, 300))
-        self.main_window.content = main_box
-        self.main_window.show()
+            title=self.formal_name,
+            size=(800, 600),
+            position=(400, 300)
+        )
 
+        self.main_window.content = container
+        self.main_window.show()
 
 def main():
     return MNBVCCharsetTool()

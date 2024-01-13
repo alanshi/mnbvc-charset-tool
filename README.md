@@ -10,6 +10,6 @@ MNBVC-Charset-Tool
 * 其他
 
 程序运行预览:
-![程序运行效果](https://github.com/alanshi/mnbvc-charset-tool/blob/main/docs/example.jpg)
+![程序运行效果](https://github.com/alanshi/mnbvc-charset-tool/blob/main/docs/example1.jpg)
 
-
+![程序运行效果](https://github.com/alanshi/mnbvc-charset-tool/blob/main/docs/example2.jpg)
